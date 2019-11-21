@@ -7,6 +7,7 @@ class Settings:
     class_name = "cat"
     class_index = 7
     dataset = "trainval"
+    model_path = "../Model/model.pt"
 
     # cuda settings
     use_cuda = True
@@ -18,7 +19,9 @@ class Settings:
     # Reinforcement Learning Agent
     action_num = 6  # except the start point
     history_num = 4  # record last four actions
-    epsilon = 0.8  # epsilon greedy start epsilon
+    eps_start = 0.8  # epsilon greedy start epsilon
+    eps_end = 0.05
+    eps_decay = 200
     gamma = 0.999
 
     # Reward
@@ -27,7 +30,9 @@ class Settings:
     iou_threshold = 0.5
 
     # Training
-    batch_size = 100
+    target_update = 10
+    batch_size = 50
+
 
 
 
