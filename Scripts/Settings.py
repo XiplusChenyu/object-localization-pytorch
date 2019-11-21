@@ -19,6 +19,7 @@ class Settings:
     action_num = 6  # except the start point
     history_num = 4  # record last four actions
     epsilon = 0.8  # epsilon greedy start epsilon
+    gamma = 0.999
 
     # Reward
     terminal_reward = 3

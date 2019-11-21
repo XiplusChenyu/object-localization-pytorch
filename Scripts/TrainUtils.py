@@ -1,7 +1,7 @@
 from Settings import Settings
 from ReplayMemory import Transition
-import numpy as np
 import torch
+import torch.nn.functional as F
 
 
 def use_cuda(tensor, cuda=Settings.cuda):
@@ -10,17 +10,19 @@ def use_cuda(tensor, cuda=Settings.cuda):
     return tensor
 
 
-def optimize_model(model, memory):
+def optimize_model(model, memory, optimizer):
     """
-    Takes a replay memory, use this memory for model training
+    Takes a replay memory, use this memory for model training,
+    for one batch
     """
+
     if len(memory) < Settings.batch_size:
         return
     transitions = memory.sample(Settings.batch_size)
     batch = Transition(*zip(*transitions))
     # zip batches as a big named tuple
 
-    non_finals = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), dtype=torch.uint8)
+    non_finals = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), dtype=torch.bool)
     non_finals = use_cuda(non_finals)
 
     with torch.no_grad():
@@ -31,27 +33,28 @@ def optimize_model(model, memory):
     state_batch = torch.cat(batch.state).type(torch.float)
     state_batch = use_cuda(state_batch)
 
-    action_batch = Variable(torch.LongTensor(batch.action).view(-1, 1)).type(torch.LongTensor)
-    reward_batch = Variable(torch.FloatTensor(batch.reward).view(-1, 1)).type(torch.FloatTensor)
+    action_batch = torch.tensor(batch.action, dtype=torch.long).view(-1, 1)
+    action_batch = use_cuda(action_batch)
+
+    reward_batch = torch.tensor(batch.reward, dtype=torch.float).view(-1, 1)
+    reward_batch = use_cuda(reward_batch)
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken
-    state_action_values = model(state_batch).gather(1, action_batch)
+    state_action_values = model(state_batch).gather(1, action_batch - 1)  # action batch should - 1
 
     # Compute V(s_{t+1}) for all next states.
-    next_state_values = Variable(torch.zeros(BATCH_SIZE, 1).type(Tensor))
-    next_state_values[non_final_mask] = model(non_final_next_states).max(1)[0]
+    next_state_values = torch.zeros(Settings.batch_size)
+    next_state_values = use_cuda(next_state_values)
 
-    # Now, we don't want to mess up the loss with a volatile flag, so let's
-    # clear it. After this, we'll just end up with a Variable that has
-    # requires_grad=False
-    next_state_values.volatile = False
+    next_state_values[non_finals] = model(non_final_next_states).max(1)[0].detach()
+    next_state_values.view(-1, 1)
 
     # Compute the expected Q values
-    expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+    expected_state_action_values = (next_state_values * Settings.gamma) + reward_batch
 
     # Compute  loss
-    loss = criterion(state_action_values, expected_state_action_values)
+    loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
 
     # Optimize the model
     optimizer.zero_grad()
