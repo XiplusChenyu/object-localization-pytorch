@@ -1,13 +1,14 @@
-import numpy as np
 import cv2
 import xml.etree.ElementTree as et
 from Settings import Settings
 
 
 class FileUtils:
-    def __init__(self):
+    def __init__(self, limit=None):
         print("Start to load data")
         self.image_names = self.load_image_names()
+        if limit:
+            self.image_names = self.image_names[:limit]
         self.images = self.obtain_images(self.image_names)
         self.annotations = self.gain_annotations(self.image_names)
         print("End")
@@ -62,5 +63,43 @@ class FileUtils:
                 print(len(annotations), end="=>")
         print(len(annotations), end="!")
         return annotations
+
+    def filter_by_class(self, class_name):
+        """call this method to filter by class name"""
+        indice = list()
+        for i, annotation in enumerate(self.annotations):
+            for obj in annotation:
+                if obj["name"] == class_name:
+                    indice.append(i)
+                    break
+
+        def filter_by_index(indice, sequence):
+            new_list = list()
+            for i, item in enumerate(sequence):
+                if i in indice:
+                    new_list.append(item)
+            return new_list
+
+        self.image_names = filter_by_index(indice, self.image_names)
+        self.images = filter_by_index(indice, self.images)
+        self.annotations = filter_by_index(indice, self.annotations)
+
+        for i, annotation in enumerate(self.annotations):
+            li = list()
+            for obj in annotation:
+                if obj["name"] == class_name:
+                    li.append(obj)
+            self.annotations[i] = li
+            del annotation
+
+
+
+
+
+
+
+
+
+
 
 
