@@ -24,6 +24,7 @@ class Settings:
     # Reward
     terminal_reward = 3
     step_reward = 1
+    iou_threshold = 0.5
 
     # Training
     batch_size = 100
