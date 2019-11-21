@@ -10,7 +10,7 @@ def use_cuda(tensor, cuda=Settings.cuda):
     return tensor
 
 
-def optimize_model(model, memory, optimizer):
+def optimize_model(policy_model, target_model, memory, optimizer):
     """
     Takes a replay memory, use this memory for model training,
     for one batch
@@ -41,13 +41,13 @@ def optimize_model(model, memory, optimizer):
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken
-    state_action_values = model(state_batch).gather(1, action_batch - 1)  # action batch should - 1
+    state_action_values = policy_model(state_batch).gather(1, action_batch - 1)  # action batch should - 1
 
     # Compute V(s_{t+1}) for all next states.
     next_state_values = torch.zeros(Settings.batch_size)
     next_state_values = use_cuda(next_state_values)
 
-    next_state_values[non_finals] = model(non_final_next_states).max(1)[0].detach()
+    next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].detach()
     next_state_values.view(-1, 1)
 
     # Compute the expected Q values
