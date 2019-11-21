@@ -25,10 +25,12 @@ def optimize_model(model, memory):
 
     with torch.no_grad():
         next_states = [s for s in batch.next_state if s is not None]
-        non_final_next_states = torch.tensor(next_states, dtype=torch.float)
+        non_final_next_states = torch.cat(next_states).type(torch.float)
         non_final_next_states = use_cuda(non_final_next_states)
 
-    state_batch = Variable(torch.cat(batch.state)).type(torch.FloatTensor)
+    state_batch = torch.cat(batch.state).type(torch.float)
+    state_batch = use_cuda(state_batch)
+
     action_batch = Variable(torch.LongTensor(batch.action).view(-1, 1)).type(torch.LongTensor)
     reward_batch = Variable(torch.FloatTensor(batch.reward).view(-1, 1)).type(torch.FloatTensor)
 

@@ -32,7 +32,7 @@ class FileUtils:
             images.append(p)
             if len(images) % 1000 == 0:
                 print(len(images), end="=>")
-        print(len(images), end="!")
+        print(len(images), end="!\n")
         return images
 
     @staticmethod
@@ -61,7 +61,7 @@ class FileUtils:
             annotations.append(self.obtain_ground_truth(name, path))
             if len(annotations) % 1000 == 0:
                 print(len(annotations), end="=>")
-        print(len(annotations), end="!")
+        print(len(annotations), end="!\n")
         return annotations
 
     def filter_by_class(self, class_name):

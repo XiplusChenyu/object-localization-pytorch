@@ -91,10 +91,13 @@ class Agent:
         """
         if random.random() < eps:
             action = random.randint(1, 6)
+            action = torch.tensor(action)
         else:
             q_values = q_model(self.get_state())
             _, predicted = torch.max(q_values.data, 1)
             action = predicted[0] + 1
+        if Settings.cuda:
+            action = action.cuda()
         return action
 
 
