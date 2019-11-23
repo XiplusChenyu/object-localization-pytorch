@@ -17,7 +17,7 @@ def optimize_model(policy_model, target_model, memory, optimizer):
     """
 
     if len(memory) < Settings.batch_size:
-        return
+        return -1
     transitions = memory.sample(Settings.batch_size)
     batch = Transition(*zip(*transitions))
     # zip batches as a big named tuple
@@ -55,10 +55,12 @@ def optimize_model(policy_model, target_model, memory, optimizer):
 
     # Compute  loss
     loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
+    if not state_action_values.shape == expected_state_action_values.shape:
+        print(state_action_values.shape, expected_state_action_values.shape)
 
     # Optimize the model
     optimizer.zero_grad()
-    loss.backward()
+    loss.backward(retain_graph=True)
     optimizer.step()
 
-    return loss.data
+    return round(float(loss.data), 4)
