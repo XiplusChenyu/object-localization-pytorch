@@ -60,3 +60,5 @@ def optimize_model(policy_model, target_model, memory, optimizer):
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+
+    return loss.data
