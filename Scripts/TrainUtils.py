@@ -10,7 +10,8 @@ def use_cuda(tensor, cuda=Settings.cuda):
     return tensor
 
 
-def optimize_model(policy_model, target_model, memory, optimizer):
+def optimize_model(policy_model, memory, optimizer):
+    # target_model
     """
     Takes a replay memory, use this memory for model training,
     for one batch
@@ -24,11 +25,14 @@ def optimize_model(policy_model, target_model, memory, optimizer):
 
     non_finals = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), dtype=torch.bool)
     non_finals = use_cuda(non_finals)
+   
 
-    with torch.no_grad():
-        next_states = [s for s in batch.next_state if s is not None]
-        non_final_next_states = torch.cat(next_states).type(torch.float)
-        non_final_next_states = use_cuda(non_final_next_states)
+    next_states = [s for s in batch.next_state if s is not None]
+    if not next_states:
+        return
+
+    non_final_next_states = torch.cat(next_states).type(torch.float)
+    non_final_next_states = use_cuda(non_final_next_states)
 
     state_batch = torch.cat(batch.state).type(torch.float)
     state_batch = use_cuda(state_batch)
@@ -47,20 +51,20 @@ def optimize_model(policy_model, target_model, memory, optimizer):
     next_state_values = torch.zeros(Settings.batch_size)
     next_state_values = use_cuda(next_state_values)
 
-    next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].detach()
-    next_state_values.view(-1, 1)
+#     next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].detach()
+    with torch.no_grad():
+        next_state_values[non_finals] = policy_model(non_final_next_states).max(1)[0]
+    next_state_values = next_state_values.view(-1, 1)
 
     # Compute the expected Q values
     expected_state_action_values = (next_state_values * Settings.gamma) + reward_batch
 
     # Compute  loss
     loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
-    if not state_action_values.shape == expected_state_action_values.shape:
-        print(state_action_values.shape, expected_state_action_values.shape)
 
     # Optimize the model
     optimizer.zero_grad()
-    loss.backward(retain_graph=True)
-    optimizer.step()
+    loss.backward()
+#     optimizer.step() 
 
     return round(float(loss.data), 4)
