@@ -25,7 +25,6 @@ def optimize_model(policy_model, target_model, memory, optimizer):
 
     non_finals = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), dtype=torch.bool)
     non_finals = use_cuda(non_finals)
-   
 
     next_states = [s for s in batch.next_state if s is not None]
     if not next_states:
@@ -51,13 +50,7 @@ def optimize_model(policy_model, target_model, memory, optimizer):
     next_state_values = torch.zeros(Settings.batch_size)
     next_state_values = use_cuda(next_state_values)
 
-    next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].detach()
-#     policy_model.eval()
-#     with torch.no_grad():
-#         next_state_values[non_finals] = policy_model(non_final_next_states).max(1)[0]
-    
-#     policy_model.train()
-    next_state_values = next_state_values.view(-1, 1)
+    next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].view(-1, 1).detach()
 
     # Compute the expected Q values
     expected_state_action_values = (next_state_values * Settings.gamma) + reward_batch

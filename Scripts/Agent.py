@@ -89,6 +89,7 @@ class Agent:
         """
         get next action based on prediction
         """
+
         if random.random() < eps:
             action = random.randint(1, 6)
             action = torch.tensor(action)

@@ -37,10 +37,13 @@ class QModel(nn.Module):
                 nn.ReLU(),
                 nn.Dropout(0.6),
                 nn.Linear(1024, 6),  # six movement
+
         )
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
-        return self.model(x)
+        out = self.model(x)
+        return self.softmax(out)
 
 
 if __name__ == '__main__':
