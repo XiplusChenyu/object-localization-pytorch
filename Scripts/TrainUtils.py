@@ -10,7 +10,7 @@ def use_cuda(tensor, cuda=Settings.cuda):
     return tensor
 
 
-def optimize_model(policy_model, memory, optimizer):
+def optimize_model(policy_model, target_model, memory, optimizer):
     # target_model
     """
     Takes a replay memory, use this memory for model training,
@@ -51,9 +51,12 @@ def optimize_model(policy_model, memory, optimizer):
     next_state_values = torch.zeros(Settings.batch_size)
     next_state_values = use_cuda(next_state_values)
 
-#     next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].detach()
-    with torch.no_grad():
-        next_state_values[non_finals] = policy_model(non_final_next_states).max(1)[0]
+    next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].detach()
+#     policy_model.eval()
+#     with torch.no_grad():
+#         next_state_values[non_finals] = policy_model(non_final_next_states).max(1)[0]
+    
+#     policy_model.train()
     next_state_values = next_state_values.view(-1, 1)
 
     # Compute the expected Q values
