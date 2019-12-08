@@ -37,7 +37,8 @@ class QModel(nn.Module):
                 nn.Dropout(0.2),
                 nn.Linear(1024, 6),  # six movement
 
-        ) 
+        )
+
         def weights_init(m):
             if isinstance(m, nn.Linear):
                 init.xavier_normal_(m.weight.data)
