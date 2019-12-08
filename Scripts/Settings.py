@@ -4,8 +4,6 @@ import torch
 class Settings:
     path_dataset = "../VOC2012"
     path_figure = "../Figures/"
-    class_name = "cat"
-    class_index = 7
     dataset = "trainval"
     model_path = "../Model/"
 
@@ -14,24 +12,21 @@ class Settings:
     cuda = torch.cuda.is_available() and use_cuda
 
     # cuda = True  # for text
-    scale = float(3) / 4
+    scale = float(4) / 5
 
     # Reinforcement Learning Agent
     action_num = 6  # except the start point
     history_num = 4  # record last four actions
     eps_start = 0.9  # epsilon greedy start epsilon
-    eps_end = 0.05
-    eps_decay = 0.1
-    gamma = 0.9
+    gamma = 0.2
 
     # Reward
-    terminal_reward = 3
+    terminal_reward = 4
     step_reward = 1
-    iou_threshold = 0.9
+    iou_threshold = 0.5
 
     # Training
-    target_update = 3 
-    batch_size = 50
+    batch_size = 128
     max_step = 5
 
 

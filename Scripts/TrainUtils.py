@@ -1,7 +1,8 @@
 from Settings import Settings
 from ReplayMemory import Transition
 import torch
-import torch.nn.functional as F
+
+criterion = torch.nn.MSELoss().cuda() if Settings.cuda else nn.MSELoss()
 
 
 def use_cuda(tensor, cuda=Settings.cuda):
@@ -44,23 +45,25 @@ def optimize_model(policy_model, target_model, memory, optimizer):
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken
-    state_action_values = policy_model(state_batch).gather(1, action_batch - 1)  # action batch should - 1
+    state_action_values = policy_model(state_batch).gather(1, action_batch-1)  # action batch should - 1
 
     # Compute V(s_{t+1}) for all next states.
     next_state_values = torch.zeros(Settings.batch_size)
     next_state_values = use_cuda(next_state_values)
-
-    next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].view(-1, 1).detach()
+    
+    next_state_values[non_finals] = target_model(non_final_next_states).max(1)[0].detach()
+    next_state_values = next_state_values.view(-1, 1)
+    
 
     # Compute the expected Q values
     expected_state_action_values = (next_state_values * Settings.gamma) + reward_batch
 
     # Compute  loss
-    loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
+    loss = criterion(state_action_values, expected_state_action_values)
 
     # Optimize the model
     optimizer.zero_grad()
     loss.backward()
-#     optimizer.step() 
+    optimizer.step() 
 
     return round(float(loss.data), 4)
