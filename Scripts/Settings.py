@@ -18,15 +18,15 @@ class Settings:
     action_num = 6  # except the start point
     history_num = 4  # record last four actions
     eps_start = 0.9  # epsilon greedy start epsilon
-    gamma = 0.2
+    gamma = 0.99
 
     # Reward
-    terminal_reward = 4
+    terminal_reward = 3
     step_reward = 1
-    iou_threshold = 0.5
+    iou_threshold = 0.6
 
     # Training
-    batch_size = 128
+    batch_size = 64
     max_step = 5
 
 

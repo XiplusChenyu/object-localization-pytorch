@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.nn.init as init
 
 vgg16 = models.vgg16_bn(pretrained=True)
+# vgg16 = models.vgg16(pretrained=True)
 vgg16_conv = list(vgg16.children())[0]
 vgg16_conv = vgg16_conv.eval()
 if Settings.cuda:
